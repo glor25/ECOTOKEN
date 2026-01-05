@@ -73,8 +73,6 @@ app.get('/mine', function(req, res) {
 
     Promise.all(requestPromises)
         .then(data => {
-            // BAGIAN REWARD SYSTEM (12.5 ECO) SUDAHDIHAPUS DARI SINI
-            // Sistem sekarang hanya akan melakukan mining transaksi user saja.
             
             res.json({
                 note: "New block mined successfully",
