@@ -1,0 +1,24 @@
+{
+  "name": "ecotoken-node",
+  "version": "1.0.0",
+  "description": "EcoToken Node & API",
+  "main": "networkNode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "node_1": "nodemon networkNode.js 3001 http://localhost:3001",
+    "node_2": "nodemon networkNode.js 3002 http://localhost:3002",
+    "node_3": "nodemon networkNode.js 3003 http://localhost:3003",
+    "api_server": "nodemon apiServer.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "sha256": "^0.2.0",
+    "uuid": "^9.0.1",
+    "cors": "^2.8.5",
+    "mongoose": "^8.2.0"
+  }
+}
