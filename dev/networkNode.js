@@ -218,7 +218,6 @@ app.get('/', function(req, res) {
 app.listen(port, function() {
     console.log(`EcoToken Node listening on port ${port}...`);
 
-    // 1. LOGIKA AUTO-REGISTER (Kode Asli Kamu)
     if (port !== '3001') {
         const registerOptions = {
             uri: 'http://localhost:3001/register-and-broadcast-node',
@@ -235,12 +234,7 @@ app.listen(port, function() {
                 console.log(`--> Info: Node 3001 belum aktif atau tidak bisa dihubungi.`);
             });
     }
-
-    // 2. LOGIKA BARU: AUTO-SYNC / HEARTBEAT
-    // Node ini akan mengecek update setiap 10 detik (10000 ms)
     setInterval(() => {
-        // Jangan jalankan kalau ini Node 3001 (karena dia biasanya leadernya di lokal)
-        // Tapi kalau mau semua node saling cek, hapus 'if' ini.
         
         const consensusOptions = {
             uri: ecoToken.currentNodeUrl + '/consensus',
@@ -250,14 +244,14 @@ app.listen(port, function() {
 
         rp(consensusOptions)
             .then(data => {
-                // Hanya log jika terjadi penggantian chain biar terminal gak penuh
+        
                 if (data.note === 'This chain has been replaced.') {
                     console.log(`[AUTO-SYNC] Chain pada Node ${port} telah diperbarui otomatis!`);
                 }
             })
             .catch(err => {
-                // Error silent saja biar gak berisik
+  
             });
 
-    }, 10000); // <-- Ubah angka ini kalau mau lebih cepat/lambat
+    }, 10000);
 });
