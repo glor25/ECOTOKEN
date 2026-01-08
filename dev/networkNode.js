@@ -45,6 +45,10 @@ app.post('/transaction/broadcast', function(req, res) {
     Promise.all(requestPromises)
         .then(data => {
             res.json({ note: 'Transaction created and broadcast successfully.' });
+        })
+        .catch(err => {
+  
+            res.json({ note: 'Transaction created, but some nodes failed to receive it.' });
         });
 });
 
@@ -73,9 +77,15 @@ app.get('/mine', function(req, res) {
 
     Promise.all(requestPromises)
         .then(data => {
-            
             res.json({
                 note: "New block mined successfully",
+                block: newBlock
+            });
+        })
+        .catch(err => {
+ 
+            res.json({
+                note: "New block mined (Warning: Broadcast failed on some nodes)",
                 block: newBlock
             });
         });
@@ -84,7 +94,7 @@ app.get('/mine', function(req, res) {
 app.post('/receive-new-block', function(req, res) {
     const newBlock = req.body.newBlock;
     const lastBlock = ecoToken.getLastBlock();
-    const correctHash = lastBlock.hash === newBlock.previousBlockHash;
+    const correctHash = lastBlock.hash === newBlock.previousBlockHash; 
     const correctIndex = lastBlock['index'] + 1 === newBlock['index'];
 
     if (correctHash && correctIndex) {
@@ -102,7 +112,6 @@ app.post('/receive-new-block', function(req, res) {
     }
 });
 
-// --- Decentralization / Network Nodes ---
 
 app.post('/register-and-broadcast-node', function(req, res) {
     const newNodeUrl = req.body.newNodeUrl;
@@ -131,6 +140,10 @@ app.post('/register-and-broadcast-node', function(req, res) {
         })
         .then(data => {
             res.json({ note: 'New node registered with network successfully.' });
+        })
+        .catch(err => {
+     
+            res.json({ note: 'Node registered, but broadcast failed.' });
         });
 });
 
@@ -191,6 +204,10 @@ app.get('/consensus', function(req, res) {
                     chain: ecoToken.chain
                 });
             }
+        })
+        .catch(err => {
+        
+            res.json({ note: 'Consensus check failed (some nodes offline).', chain: ecoToken.chain });
         });
 });
 
@@ -200,4 +217,47 @@ app.get('/', function(req, res) {
 
 app.listen(port, function() {
     console.log(`EcoToken Node listening on port ${port}...`);
+
+    // 1. LOGIKA AUTO-REGISTER (Kode Asli Kamu)
+    if (port !== '3001') {
+        const registerOptions = {
+            uri: 'http://localhost:3001/register-and-broadcast-node',
+            method: 'POST',
+            body: { newNodeUrl: `http://localhost:${port}` },
+            json: true
+        };
+
+        rp(registerOptions)
+            .then(data => {
+                console.log(`--> Berhasil: Node ${port} sudah terdaftar otomatis via Node 3001!`);
+            })
+            .catch(err => {
+                console.log(`--> Info: Node 3001 belum aktif atau tidak bisa dihubungi.`);
+            });
+    }
+
+    // 2. LOGIKA BARU: AUTO-SYNC / HEARTBEAT
+    // Node ini akan mengecek update setiap 10 detik (10000 ms)
+    setInterval(() => {
+        // Jangan jalankan kalau ini Node 3001 (karena dia biasanya leadernya di lokal)
+        // Tapi kalau mau semua node saling cek, hapus 'if' ini.
+        
+        const consensusOptions = {
+            uri: ecoToken.currentNodeUrl + '/consensus',
+            method: 'GET',
+            json: true
+        };
+
+        rp(consensusOptions)
+            .then(data => {
+                // Hanya log jika terjadi penggantian chain biar terminal gak penuh
+                if (data.note === 'This chain has been replaced.') {
+                    console.log(`[AUTO-SYNC] Chain pada Node ${port} telah diperbarui otomatis!`);
+                }
+            })
+            .catch(err => {
+                // Error silent saja biar gak berisik
+            });
+
+    }, 10000); // <-- Ubah angka ini kalau mau lebih cepat/lambat
 });

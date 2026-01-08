@@ -24,9 +24,6 @@ export default function App() {
   const [blockchainData, setBlockchainData] = useState(null);
   const [pendingTx, setPendingTx] = useState([]);
 
-  // FILTER PENDING: Hanya tampilkan transaksi milik user yang sedang login
-  // SAFE CHECK: (pendingTx || []) memastikan tidak crash jika data null/undefined
-  // Tambahan Check: Pastikan user valid sebelum mengakses user.email
   const userPendingTx = (pendingTx || []).filter(tx => 
     tx && tx.sender !== "00" && user && (tx.recipient === user.email)
   );
